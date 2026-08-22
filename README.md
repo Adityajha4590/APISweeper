@@ -6,15 +6,19 @@ Unlike heavy, enterprise-grade scanners (like Burp Suite or OWASP ZAP), APISweep
 
 ---
 
-## 👥 Meet the Team
+## 👥 Meet the Team & Work Distribution
 
 This project was developed over a 20-day sprint by a 5-person security engineering team:
 
-*   **[Your Name]** (Supervisor / Lead Architect) - Core integration, target dummy API, and project management.
-*   **Jatin** - Core Scanner CLI Engine & HTTP handling.
-*   **Keshav** - Passive Scanning (Security Headers, Verbose Error Leaks).
-*   **Rishab** - Active Scanning (Rate Limiting, JWT algorithm checks).
-*   **Pranav** - Logic Scanning (BOLA/IDOR) & PDF/JSON Report Generation.
+*   **Aditya Kumar Jha** (Supervisor / Lead Architect)
+    *   Core Integration (`core/base.py`)
+    *   Target Dummy API (`dummy_api/app.py`)
+    *   Premium Web UI Dashboard (`web_ui/`, `server.py`)
+    *   Project Management
+*   **Jatin** - Core Scanner CLI Engine & HTTP handling (`scanner.py`).
+*   **Keshav** - Passive Scanning (`modules/passive/security_headers.py`, `modules/passive/verbose_errors.py`).
+*   **Rishab** - Active Scanning (`modules/active/rate_limiting.py`, `modules/active/jwt_checks.py`).
+*   **Pranav** - Logic Scanning (`modules/logic/bola_idor.py`) & Reporting Engine (`core/reporting.py`).
 
 ---
 
@@ -24,11 +28,12 @@ This project was strictly managed and developed across 4 agile phases:
 
 ### Phase 1: Foundation & Setup (Days 1 - 4)
 *   **Repository Initialization:** Set up Git flow, branch protections, and contribution guidelines.
-*   **Dummy Target API:** Developed a deliberately vulnerable local API (using Flask/FastAPI) to safely test our scanner payloads against without hitting live internet targets.
-*   **Architecture Design:** Defined the base Python classes so all vulnerability modules plug into the main engine uniformly.
+*   **Dummy Target API:** Developed a deliberately vulnerable local API (using Flask/FastAPI) to safely test our scanner payloads.
+*   **Architecture Design:** Defined the base Python classes (`core/base.py`) so all vulnerability modules plug into the main engine uniformly.
+*   **Web UI Scaffold:** Designed a premium, dark-mode cybersecurity dashboard (`web_ui/`) using Vanilla JS/CSS.
 
 ### Phase 2: Core Framework & Basic Modules (Days 5 - 10)
-*   **CLI Engine (`scanner.py`):** Implemented `argparse` for robust command-line target ingestion.
+*   **CLI Engine & UI Backend:** Implemented `argparse` for robust command-line target ingestion (`scanner.py`) and a Flask API (`server.py`) to serve the Web Dashboard.
 *   **Missing Security Headers Module:** Automatically flags missing standard defenses (e.g., `Strict-Transport-Security`, `X-Content-Type-Options`).
 *   **Verbose Error Leaks Module:** Uses pattern matching to detect stack traces (Python, Java, SQL syntax) improperly returned in HTTP 500 responses.
 
@@ -42,6 +47,43 @@ This project was strictly managed and developed across 4 agile phases:
 *   **Integration Testing:** Running the full APISweeper suite against the Dummy Target API to eliminate false positives and negatives.
 *   **Code Review:** Final pull request merges and code quality standardization.
 *   **Documentation:** Finalizing this README and usage instructions.
+
+---
+
+## 📁 Project Structure
+The repository is structured as follows:
+
+```text
+APISweeper/
+├── core/                  # Architecture & Reporting
+│   ├── __init__.py
+│   ├── base.py
+│   └── reporting.py       
+├── dummy_api/             # Vulnerable Targets
+│   ├── __init__.py
+│   └── app.py
+├── modules/               # The Scanning Engine
+│   ├── __init__.py
+│   ├── passive/           
+│   │   ├── __init__.py
+│   │   ├── security_headers.py
+│   │   └── verbose_errors.py
+│   ├── active/            
+│   │   ├── __init__.py
+│   │   ├── rate_limiting.py
+│   │   └── jwt_checks.py
+│   └── logic/             
+│       ├── __init__.py
+│       └── bola_idor.py
+├── web_ui/                # UI Dashboard
+│   ├── index.html
+│   ├── style.css
+│   └── app.js
+├── scanner.py             # CLI Entry Point
+├── server.py              # Web UI Server
+├── requirements.txt
+└── README.md              
+```
 
 ---
 
@@ -118,3 +160,12 @@ Total Vulnerabilities Found: 3
 1. **Branch Naming:** Format your branches as `feature/module-name` (e.g., `feature/rate-limiting`).
 2. **Pull Requests:** Do not merge your own PRs. Assign the Supervisor for review.
 3. **Module Structure:** Ensure all new checks inherit from the `BaseScanner` class found in `core/base.py`.
+
+---
+
+## 🏆 Supervisor Resume Highlights (Aditya Kumar Jha)
+If you are adding this project to your resume, consider using these bullet points:
+*   **Technical Leadership:** Supervised and architected a 5-person engineering team to build **APISweeper**, a modular Dynamic Application Security Testing (DAST) tool over a 20-day agile sprint.
+*   **System Architecture:** Designed the extensible core engine in Python, establishing standard inheritance patterns (`BaseScanner`) enabling concurrent development of passive, active, and logic-based vulnerability modules.
+*   **Full-Stack Development:** Engineered both a vulnerable Flask-based dummy target API for zero-risk local testing, and a premium glassmorphism Web UI dashboard to visualize scanner findings in real-time.
+*   **Project Management:** Enforced strict Git Flow (feature branching, PR reviews) and defined the project roadmap, ensuring seamless integration of complex modules (BOLA checks, Rate Limiting, JWT validation).
