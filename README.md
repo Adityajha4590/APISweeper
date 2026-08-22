@@ -13,9 +13,8 @@ This project was developed over a 20-day sprint by a 5-person security engineeri
 *   **Aditya Kumar Jha** (Supervisor / Lead Architect)
     *   Core Integration (`core/base.py`)
     *   Target Dummy API (`dummy_api/app.py`)
-    *   Premium Web UI Dashboard (`web_ui/`, `server.py`)
     *   Project Management
-*   **Jatin** - Core Scanner CLI Engine & HTTP handling (`scanner.py`).
+*   **Jatin** - Core Scanner CLI Engine & HTTP handling (`scanner.py`), and Premium Web UI Dashboard (`ui.py` using Streamlit).
 *   **Keshav** - Passive Scanning (`modules/passive/security_headers.py`, `modules/passive/verbose_errors.py`).
 *   **Rishab** - Active Scanning (`modules/active/rate_limiting.py`, `modules/active/jwt_checks.py`).
 *   **Pranav** - Logic Scanning (`modules/logic/bola_idor.py`) & Reporting Engine (`core/reporting.py`).
@@ -28,12 +27,12 @@ This project was strictly managed and developed across 4 agile phases:
 
 ### Phase 1: Foundation & Setup (Days 1 - 4)
 *   **Repository Initialization:** Set up Git flow, branch protections, and contribution guidelines.
-*   **Dummy Target API:** Developed a deliberately vulnerable local API (using Flask/FastAPI) to safely test our scanner payloads.
+*   **Dummy Target API:** Developed a deliberately vulnerable local API (using Flask) to safely test our scanner payloads.
 *   **Architecture Design:** Defined the base Python classes (`core/base.py`) so all vulnerability modules plug into the main engine uniformly.
-*   **Web UI Scaffold:** Designed a premium, dark-mode cybersecurity dashboard (`web_ui/`) using Vanilla JS/CSS.
+*   **Web UI Scaffold:** Designed a premium, dark-mode cybersecurity dashboard (`ui.py`) using **Streamlit** (100% Python frontend).
 
 ### Phase 2: Core Framework & Basic Modules (Days 5 - 10)
-*   **CLI Engine & UI Backend:** Implemented `argparse` for robust command-line target ingestion (`scanner.py`) and a Flask API (`server.py`) to serve the Web Dashboard.
+*   **CLI Engine & UI Backend:** Implemented `argparse` for robust command-line target ingestion (`scanner.py`) and integrated it into the Streamlit dashboard (`ui.py`).
 *   **Missing Security Headers Module:** Automatically flags missing standard defenses (e.g., `Strict-Transport-Security`, `X-Content-Type-Options`).
 *   **Verbose Error Leaks Module:** Uses pattern matching to detect stack traces (Python, Java, SQL syntax) improperly returned in HTTP 500 responses.
 
@@ -59,7 +58,7 @@ APISweeper/
 │   ├── __init__.py
 │   ├── base.py
 │   └── reporting.py       
-├── dummy_api/             # Vulnerable Targets
+├── dummy_api/             # Vulnerable Targets (Flask)
 │   ├── __init__.py
 │   └── app.py
 ├── modules/               # The Scanning Engine
@@ -75,15 +74,18 @@ APISweeper/
 │   └── logic/             
 │       ├── __init__.py
 │       └── bola_idor.py
-├── web_ui/                # UI Dashboard
-│   ├── index.html
-│   ├── style.css
-│   └── app.js
+├── ui.py                  # Streamlit Web UI Dashboard
 ├── scanner.py             # CLI Entry Point
-├── server.py              # Web UI Server
 ├── requirements.txt
 └── README.md              
 ```
+
+### What Each Folder is For:
+*   **`core/`**: The most critical folder. Contains `base.py`, which is the abstract contract (blueprint) that every other scanner module must follow. Without this integration layer, the engine wouldn't know how to run the different team members' code together.
+*   **`dummy_api/`**: A deliberately vulnerable local web server. We build and run this so our scanner has a safe, legal target to attack during development without scanning live public servers.
+*   **`modules/`**: Where the actual scanning logic lives. Split into `passive` (checking headers without sending many requests), `active` (sending many requests like rate limiting), and `logic` (complex tests like BOLA/IDOR).
+*   **`ui.py`**: Contains the Streamlit Python code for the premium visual dashboard. This is the "frontend" that users will interact with.
+*   **`scanner.py`**: The fallback CLI (Command Line Interface) engine for running scans directly from the terminal without the UI.
 
 ---
 
@@ -167,5 +169,5 @@ Total Vulnerabilities Found: 3
 If you are adding this project to your resume, consider using these bullet points:
 *   **Technical Leadership:** Supervised and architected a 5-person engineering team to build **APISweeper**, a modular Dynamic Application Security Testing (DAST) tool over a 20-day agile sprint.
 *   **System Architecture:** Designed the extensible core engine in Python, establishing standard inheritance patterns (`BaseScanner`) enabling concurrent development of passive, active, and logic-based vulnerability modules.
-*   **Full-Stack Development:** Engineered both a vulnerable Flask-based dummy target API for zero-risk local testing, and a premium glassmorphism Web UI dashboard to visualize scanner findings in real-time.
+*   **Full-Stack Development:** Engineered both a vulnerable Flask-based dummy target API for zero-risk local testing, and supervised the integration of a premium Streamlit Web UI dashboard to visualize scanner findings in real-time.
 *   **Project Management:** Enforced strict Git Flow (feature branching, PR reviews) and defined the project roadmap, ensuring seamless integration of complex modules (BOLA checks, Rate Limiting, JWT validation).
