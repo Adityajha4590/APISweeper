@@ -165,7 +165,7 @@ Total Vulnerabilities Found: 3
 
 ---
 
-## 🏆 Supervisor Resume Highlights (Aditya Kumar Jha)
+## 🏆 Supervisor Resume Highlights (Aditya Kumar Jha)..
 If you are adding this project to your resume, consider using these bullet points:
 *   **Technical Leadership:** Supervised and architected a 5-person engineering team to build **APISweeper**, a modular Dynamic Application Security Testing (DAST) tool over a 20-day agile sprint.
 *   **System Architecture:** Designed the extensible core engine in Python, establishing standard inheritance patterns (`BaseScanner`) enabling concurrent development of passive, active, and logic-based vulnerability modules.
