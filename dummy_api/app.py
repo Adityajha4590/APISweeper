@@ -78,6 +78,67 @@ def login():
     return jsonify({"error": "Invalid credentials"}), 401
 
 
+# --------------------------------------------------------------------
+# Fake auth — two hardcoded test users and their tokens. FOR BOLA
+# --------------------------------------------------------------------
+
+FAKE_USERS = {
+    "token_alice_123": {"user_id": 1, "username": "alice"},
+    "token_bob_456": {"user_id": 2, "username": "bob"},
+}
+
+
+# --------------------------------------------------------------------
+# Fake data — each order belongs to exactly one user (the "owner" field).
+# --------------------------------------------------------------------
+ORDERS = {
+    101: {"item": "Laptop", "amount": "$1200", "owner": 1},   
+    102: {"item": "Phone", "amount": "$800", "owner": 2},     
+    103: {"item": "Headphones", "amount": "$150", "owner": 1},  
+}
+
+def get_requesting_user():
+    """
+    Reads the authorization header and  looks which user it belongs to Return none if token is missing or incorrect. 
+
+    """
+
+    auth_header = request.headers.get("Authorization","")
+    token = auth_header.replace("Bearer","").strip()
+    return FAKE_USERS.get(token)
+
+# --------------------------------------------------------------------
+# Vulnerability 4: Broken Object-Level Authorization (BOLA/IDOR)
+# Assigned to: Pranav
+# --------------------------------------------------------------------
+@app.route('/api/v1/orders/<int:order_id>', methods=['GET'])
+def get_order(order_id):
+    """
+    Returns an order by ID.
+
+    this checks that the request has SOME valid token
+    (is the requester logged in at all?), but does not checks whether
+    the order's owner field matches the requesting user's ID.
+
+    """
+    user = get_requesting_user()
+    if user is None:
+        return jsonify({"error": "Unauthorized - invalid or missing token"}), 401
+
+    # As it is BOLA we are not checking if the orderid belongs to owner .
+
+    order = ORDERS.get(order_id)
+    if order is None:
+        return jsonify({"error": "Order not found"}), 404
+
+    
+    return jsonify({
+        "order_id": order_id,
+        "item": order["item"],
+        "amount": order["amount"],
+        "owner_user_id": order["owner"],
+    }), 200
+
 if __name__ == '__main__':
     print("⚠️  WARNING: Starting Vulnerable Dummy API on http://localhost:5001")
     print("⚠️  DO NOT run this on a public network. Localhost testing only.")
