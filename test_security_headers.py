@@ -2,7 +2,7 @@ from modules.passive.security_headers import SecurityHeadersScanner
 
 
 scanner = SecurityHeadersScanner(
-    "http://127.0.0.1:5001/api/v1/status"
+    "https://www.keshavgarg.tech/"
 )
 
 scanner.scan()
