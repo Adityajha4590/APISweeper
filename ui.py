@@ -1,6 +1,5 @@
 import json
 import time
-import textwrap
 from datetime import datetime
 
 import streamlit as st
@@ -8,32 +7,28 @@ import streamlit as st
 from scanner import run_scan
 
 
+# ============================================================
+# PAGE CONFIGURATION
+# ============================================================
+
 st.set_page_config(
-    page_title="APISweeper | Security Dashboard",
+    page_title="APISweeper",
+    page_icon="A",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="expanded"
 )
 
 
-def render_html(content):
-    clean_html = "\n".join(
-        line.strip()
-        for line in content.splitlines()
-        if line.strip()
-    )
-
-    st.markdown(
-        clean_html,
-        unsafe_allow_html=True
-    )
-
+# ============================================================
+# CUSTOM CSS
+# ============================================================
 
 st.markdown(
     """
     <style>
+
     .stApp {
-        background-color: #0b0f19;
-        color: #e2e8f0;
+        background-color: #0b1120;
     }
 
     .block-container {
@@ -42,608 +37,500 @@ st.markdown(
         padding-bottom: 3rem;
     }
 
-    html, body, [class*="css"] {
-        font-family: "Inter", -apple-system, BlinkMacSystemFont,
-        "Segoe UI", sans-serif;
-    }
-
     [data-testid="stSidebar"] {
-        background-color: #0f172a;
-        border-right: 1px solid #1e293b;
+    background-color: #111827;
+    border-right: 1px solid #263244;
     }
 
-    [data-testid="stSidebar"] h3 {
-        color: #f8fafc;
+    [data-testid="stSidebarContent"] {
+        height: 100vh;
+        overflow-y: auto;
     }
 
-    .app-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: linear-gradient(
-            135deg,
-            rgba(15, 23, 42, 0.95),
-            rgba(17, 24, 39, 0.95)
-        );
-        border: 1px solid #1e293b;
+    .header-container {
+        background: linear-gradient(135deg, #111827, #172033);
+        border: 1px solid #2a3850;
         border-radius: 14px;
-        padding: 1.4rem 1.6rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        padding: 24px;
+        margin-bottom: 20px;
     }
 
-    .app-title {
-        font-size: 1.55rem;
+    .header-title {
+        font-size: 34px;
         font-weight: 700;
         color: #f8fafc;
+        margin-bottom: 5px;
     }
 
-    .app-subtitle {
-        font-size: 0.85rem;
+    .header-subtitle {
+        font-size: 16px;
         color: #94a3b8;
-        margin-top: 4px;
-    }
-
-    .status-ready {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid #059669;
-        color: #34d399;
-        padding: 6px 12px;
-        border-radius: 999px;
-        font-size: 0.78rem;
-        font-weight: 600;
-    }
-
-    .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #10b981;
-        box-shadow: 0 0 10px rgba(16, 185, 129, 0.7);
     }
 
     .section-heading {
-        color: #f8fafc;
-        font-size: 1.05rem;
+        font-size: 22px;
         font-weight: 650;
-        margin-top: 1rem;
-        margin-bottom: 0.9rem;
-    }
-
-    .metric-card {
-        background: rgba(30, 41, 59, 0.7);
-        border: 1px solid #334155;
-        border-radius: 12px;
-        padding: 18px 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-        min-height: 105px;
-    }
-
-    .metric-title {
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #94a3b8;
-        font-weight: 600;
-        margin-bottom: 7px;
-    }
-
-    .metric-value {
-        font-size: 1.55rem;
-        font-weight: 700;
         color: #f8fafc;
+        margin-top: 20px;
+        margin-bottom: 8px;
     }
 
-    .metric-subtitle {
-        color: #64748b;
-        font-size: 0.72rem;
-        margin-top: 4px;
-    }
-
-    .status-2xx {
-        color: #34d399;
-    }
-
-    .status-3xx {
-        color: #38bdf8;
-    }
-
-    .status-4xx {
-        color: #fbbf24;
-    }
-
-    .status-5xx {
-        color: #f87171;
-    }
-
-    .badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-size: 0.7rem;
-        font-weight: 700;
-        margin-left: 5px;
-    }
-
-    .badge-success {
-        background: rgba(16, 185, 129, 0.12);
-        color: #34d399;
-        border: 1px solid #059669;
-    }
-
-    .badge-warning {
-        background: rgba(245, 158, 11, 0.12);
-        color: #fbbf24;
-        border: 1px solid #d97706;
-    }
-
-    .badge-danger {
-        background: rgba(239, 68, 68, 0.12);
-        color: #f87171;
-        border: 1px solid #dc2626;
-    }
-
-    .badge-info {
-        background: rgba(14, 165, 233, 0.12);
-        color: #38bdf8;
-        border: 1px solid #0284c7;
-    }
-
-    .target-card {
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 10px;
-        padding: 14px 16px;
-    }
-
-    .target-label {
-        font-size: 0.7rem;
-        color: #64748b;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        margin-bottom: 4px;
-    }
-
-    .target-value {
-        color: #e2e8f0;
-        font-family: "JetBrains Mono", monospace;
-        font-size: 0.85rem;
-        word-break: break-all;
-    }
-
-    .finding-card {
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 10px;
-        padding: 15px;
-        margin-bottom: 10px;
-    }
-
-    .finding-title {
-        color: #f8fafc;
-        font-size: 0.92rem;
-        font-weight: 650;
-    }
-
-    .finding-details {
-        color: #94a3b8;
-        font-size: 0.82rem;
-        margin-top: 7px;
-        line-height: 1.5;
-    }
-
-    .severity {
-        display: inline-block;
-        padding: 3px 8px;
-        border-radius: 5px;
-        font-size: 0.68rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        margin-right: 7px;
-    }
-
-    .severity-high {
-        background: rgba(239, 68, 68, 0.12);
-        color: #f87171;
-        border: 1px solid #dc2626;
-    }
-
-    .severity-medium {
-        background: rgba(245, 158, 11, 0.12);
-        color: #fbbf24;
-        border: 1px solid #d97706;
-    }
-
-    .severity-low {
-        background: rgba(16, 185, 129, 0.12);
-        color: #34d399;
-        border: 1px solid #059669;
-    }
-
-    .severity-info {
-        background: rgba(14, 165, 233, 0.12);
-        color: #38bdf8;
-        border: 1px solid #0284c7;
-    }
-
-    [data-testid="stForm"] {
-        background: #111827;
-        border: 1px solid #1f2937;
-        border-radius: 14px;
-        padding: 22px;
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
-    }
-
-    button[kind="primary"] {
-        background: linear-gradient(
-            135deg,
-            #0ea5e9,
-            #2563eb
-        ) !important;
-        border: none !important;
-        color: white !important;
-        font-weight: 650 !important;
-        border-radius: 8px !important;
-    }
-
-    button[kind="primary"]:hover {
-        background: linear-gradient(
-            135deg,
-            #38bdf8,
-            #1d4ed8
-        ) !important;
-    }
-
-    .empty-state {
-        background: #111827;
-        border: 1px dashed #334155;
-        border-radius: 10px;
-        padding: 30px;
-        text-align: center;
-    }
-
-    .empty-title {
-        color: #e2e8f0;
-        font-weight: 650;
-    }
-
-    .empty-text {
-        color: #64748b;
-        font-size: 0.82rem;
-    }
     </style>
     """,
     unsafe_allow_html=True
 )
 
 
+# ============================================================
+# SESSION STATE
+# ============================================================
+
+if "scan_history" not in st.session_state:
+    st.session_state.scan_history = []
+    
 if "scan_result" not in st.session_state:
-    st.session_state["scan_result"] = None
+    st.session_state.scan_result = None
 
 if "scan_timestamp" not in st.session_state:
-    st.session_state["scan_timestamp"] = None
+    st.session_state.scan_timestamp = None
 
 if "scan_latency" not in st.session_state:
-    st.session_state["scan_latency"] = None
+    st.session_state.scan_latency = None
 
+
+# ============================================================
+# HELPER FUNCTIONS
+# ============================================================
+
+def get_finding_title(finding):
+
+    if not isinstance(finding, dict):
+        return "Security Finding"
+
+    description = str(
+        finding.get("description", "")
+    )
+
+    description_upper = description.upper()
+
+    if "X-FRAME-OPTIONS" in description_upper:
+        return "Missing X-Frame-Options Header"
+
+    if "X-CONTENT-TYPE-OPTIONS" in description_upper:
+        return "Missing X-Content-Type-Options Header"
+
+    if "CONTENT-SECURITY-POLICY" in description_upper:
+        return "Missing Content-Security-Policy Header"
+
+    if "STRICT-TRANSPORT-SECURITY" in description_upper:
+        return "Missing Strict-Transport-Security Header"
+
+    if "REFERRER-POLICY" in description_upper:
+        return "Missing Referrer-Policy Header"
+
+    if "PERMISSIONS-POLICY" in description_upper:
+        return "Missing Permissions-Policy Header"
+
+    if "CROSS-ORIGIN-RESOURCE-POLICY" in description_upper:
+        return "Missing Cross-Origin-Resource-Policy Header"
+
+    if "CROSS-ORIGIN-OPENER-POLICY" in description_upper:
+        return "Missing Cross-Origin-Opener-Policy Header"
+
+    if "JWT" in description_upper:
+        return "JWT Security Check"
+
+    if "SQL" in description_upper:
+        return "Potential SQL Error Disclosure"
+
+    if "STACK TRACE" in description_upper:
+        return "Stack Trace Disclosure"
+
+    if "JAVA" in description_upper:
+        return "Verbose Java Error Disclosure"
+
+    if "ERROR" in description_upper:
+        return "Verbose Error Disclosure"
+
+    return "Security Finding"
+
+
+def get_status_text(status_code):
+
+    if not isinstance(status_code, int):
+        return "UNKNOWN"
+
+    if 200 <= status_code < 300:
+        return "SUCCESS"
+
+    if 300 <= status_code < 400:
+        return "REDIRECT"
+
+    if 400 <= status_code < 500:
+        return "CLIENT ERROR"
+
+    if 500 <= status_code < 600:
+        return "SERVER ERROR"
+
+    return "UNKNOWN"
+
+
+def calculate_risk_level(risk_score):
+
+    if risk_score == 0:
+        return "CLEAN"
+
+    if risk_score <= 10:
+        return "LOW"
+
+    if risk_score <= 25:
+        return "MEDIUM"
+
+    if risk_score <= 50:
+        return "HIGH"
+
+    return "CRITICAL"
+
+
+# ============================================================
+# SIDEBAR
+# ============================================================
 
 with st.sidebar:
-    st.markdown("### APISweeper")
-    st.caption("REST API Security Assessment Platform")
+
+    st.title("APISweeper")
+
+    st.caption(
+        "REST API Security Assessment Platform"
+    )
 
     st.divider()
 
-    st.markdown("**Scanner Configuration**")
+    st.subheader("Scanner Configuration")
 
-    st.checkbox(
-        "Passive Security Headers",
-        value=True,
-        disabled=True
+    enable_headers = st.checkbox(
+        "Security Headers",
+        value=True
     )
 
-    st.checkbox(
+    enable_verbose_errors = st.checkbox(
         "Verbose Error Detection",
-        value=True,
-        disabled=True
+        value=True
     )
 
-    st.checkbox(
-        "Active Rate Limiting",
-        value=False,
-        disabled=True
-    )
-
-    st.checkbox(
+    enable_jwt = st.checkbox(
         "JWT Token Verification",
-        value=False,
-        disabled=True
-    )
-
-    st.checkbox(
-        "BOLA / IDOR Logic Engine",
-        value=False,
-        disabled=True
+        value=True
     )
 
     st.divider()
 
-    render_html(
-        """
-        <div style="
-            background:#1e293b;
-            padding:12px;
-            border-radius:8px;
-            border-left:4px solid #10b981;
-        ">
-            <span style="
-                font-size:0.72rem;
-                color:#94a3b8;
-            ">
-                ENGINE STATUS
-            </span>
-            <br>
-            <strong style="color:#34d399;">
-                Ready
-            </strong>
-        </div>
-        """
+    st.subheader("Module Status")
+
+    active_modules = []
+
+    if enable_headers:
+        active_modules.append("Security Headers")
+
+    if enable_verbose_errors:
+        active_modules.append("Verbose Error Detection")
+
+    if enable_jwt:
+        active_modules.append("JWT Token Verification")
+
+    st.write(
+        f"Active Modules: {len(active_modules)}"
     )
 
+    for module in active_modules:
+        st.caption(module)
 
-render_html(
+    st.divider()
+
+    st.success("Assessment Engine Ready")
+
+    st.caption(
+        "Only scan systems and APIs you are authorized to test."
+    )
+
+st.divider()
+
+st.subheader("Recent Scans")
+
+history = st.session_state.scan_history
+
+if history:
+
+    for item in history:
+
+        st.caption(
+            item.get(
+                "timestamp",
+                "Unknown Time"
+            )
+        )
+
+        st.write(
+            item.get(
+                "target",
+                "Unknown Target"
+            )
+        )
+
+        st.caption(
+            f"Risk: "
+            f"{item.get('risk_level', 'N/A')} | "
+            f"Findings: "
+            f"{item.get('findings', 0)}"
+        )
+
+        st.divider()
+
+else:
+
+    st.caption(
+        "No scans performed yet."
+    )
+
+# ============================================================
+# APPLICATION HEADER
+# ============================================================
+
+st.markdown(
     """
-    <div class="app-header">
-        <div>
-            <div class="app-title">
-                APISweeper
-            </div>
-
-            <div class="app-subtitle">
-                REST API Security Assessment Platform
-            </div>
+    <div class="header-container">
+        <div class="header-title">
+            APISweeper
         </div>
-
-        <div class="status-ready">
-            <span class="status-dot"></span>
-            Scanner Ready
+        <div class="header-subtitle">
+            REST API Security Assessment Platform
         </div>
     </div>
-    """
+    """,
+    unsafe_allow_html=True
 )
 
 
-render_html(
-    """
-    <div class="section-heading">
-        Target Scan Console
-    </div>
-    """
+# ============================================================
+# TARGET SCAN CONSOLE
+# ============================================================
+
+st.markdown(
+    '<div class="section-heading">Target Scan Console</div>',
+    unsafe_allow_html=True
 )
 
 st.caption(
-    "Configure the endpoint and execute an authorized security assessment."
+    "Configure an authorized API endpoint and execute a security assessment."
 )
 
 
-with st.form("scan_form"):
-    col_url, col_method = st.columns([3, 1])
+# ============================================================
+# SCAN FORM
+# ============================================================
 
-    with col_url:
+with st.form("scan_form"):
+
+    col1, col2 = st.columns([3, 1])
+
+    with col1:
+
         target_url = st.text_input(
             "Target API URL",
-            placeholder="http://localhost:5001/api/v1/status",
-            help="Enter the HTTP/HTTPS endpoint you are authorized to assess."
+            placeholder="http://localhost:5000/api/status"
         )
 
-    with col_method:
+    with col2:
+
         http_method = st.selectbox(
             "HTTP Method",
-            ["GET", "POST"],
-            index=0
+            ["GET", "POST"]
         )
 
-    col_token, col_body = st.columns([1, 1])
+    col3, col4 = st.columns(2)
 
-    with col_token:
+    with col3:
+
         auth_token = st.text_input(
-            "Authentication Token (Optional)",
+            "Authentication Token",
             type="password",
-            placeholder="Bearer token or API key"
+            placeholder="Optional Bearer token"
         )
 
-    with col_body:
+    with col4:
+
         request_body = st.text_area(
             "Request Body (JSON)",
-            value="" if http_method == "GET" else "{\n  \n}",
-            height=100,
-            placeholder='{"key": "value"}'
+            placeholder='{"key": "value"}',
+            height=100
         )
 
-    st.write("")
-
-    execute_btn = st.form_submit_button(
+    start_scan = st.form_submit_button(
         "Start Security Scan",
-        type="primary",
-        use_container_width=True
+        use_container_width=True,
+        type="primary"
     )
 
 
-if execute_btn:
-    url_cleaned = target_url.strip() if target_url else ""
+# ============================================================
+# EXECUTE SCAN
+# ============================================================
 
-    token_cleaned = (
-        auth_token.strip()
-        if auth_token and auth_token.strip()
-        else None
-    )
+if start_scan:
 
-    if not url_cleaned:
+    cleaned_url = target_url.strip()
+
+    if not cleaned_url:
+
         st.error(
-            "Please enter a Target API URL before starting the scan."
+            "Please enter a target API URL."
         )
 
     elif not (
-        url_cleaned.startswith("http://")
-        or url_cleaned.startswith("https://")
+        cleaned_url.startswith("http://")
+        or cleaned_url.startswith("https://")
     ):
+
         st.error(
-            "Invalid URL: Target URL must begin with "
-            "'http://' or 'https://'."
+            "Target URL must start with http:// or https://"
         )
 
     else:
+
         post_data = None
         json_valid = True
 
         if http_method == "POST":
-            body_trimmed = request_body.strip()
 
-            if body_trimmed:
+            body = request_body.strip()
+
+            if body:
+
                 try:
-                    post_data = json.loads(body_trimmed)
+                    post_data = json.loads(body)
 
-                except json.JSONDecodeError as json_err:
+                except json.JSONDecodeError as error:
+
                     json_valid = False
 
                     st.error(
-                        f"Invalid JSON in Request Body: "
-                        f"{json_err.msg} "
-                        f"(line {json_err.lineno}, "
-                        f"column {json_err.colno})."
+                        f"Invalid JSON request body: {error}"
                     )
 
         if json_valid:
-            with st.spinner(
-                "Connecting to target and executing security scan..."
-            ):
-                try:
+
+            token = (
+                auth_token.strip()
+                if auth_token.strip()
+                else None
+            )
+
+            try:
+
+                with st.spinner(
+                    "Running security assessment..."
+                ):
+
                     start_time = time.perf_counter()
 
                     result = run_scan(
-                        url=url_cleaned,
-                        token=token_cleaned,
+                        url=cleaned_url,
+                        token=token,
                         method=http_method,
-                        data=post_data
+                        data=post_data,
+                        enable_headers=enable_headers,
+                        enable_verbose_errors=enable_verbose_errors,
+                        enable_jwt=enable_jwt
                     )
 
                     elapsed_time = (
-                        time.perf_counter() - start_time
+                        time.perf_counter()
+                        - start_time
                     ) * 1000
 
-                except Exception as ex:
-                    result = None
-                    elapsed_time = None
+                if result is None:
 
                     st.error(
-                        f"An unexpected error occurred "
-                        f"during scan execution: {ex}"
+                        "Scan failed. Unable to connect to the target."
                     )
 
-            if result is None:
+                    st.session_state.scan_result = None
+                    st.session_state.scan_timestamp = None
+                    st.session_state.scan_latency = None
+
+                else:
+
+                    st.session_state.scan_result = result
+
+                    st.session_state.scan_timestamp = (
+                        datetime.now().strftime(
+                            "%Y-%m-%d %H:%M:%S"
+                        )
+                    )
+
+                    st.session_state.scan_latency = elapsed_time
+
+                    st.success(
+                        "Security assessment completed successfully."
+                    )
+
+            except Exception as error:
+
                 st.error(
-                    "Scan Failed: Unable to establish connection "
-                    "to the target URL. Please verify that the server "
-                    "is running, the URL is correct, and network access "
-                    "is permitted."
-                )
-
-                st.session_state["scan_result"] = None
-                st.session_state["scan_timestamp"] = None
-                st.session_state["scan_latency"] = None
-
-            else:
-                st.session_state["scan_result"] = result
-
-                st.session_state["scan_timestamp"] = (
-                    datetime.now().strftime(
-                        "%Y-%m-%d %H:%M:%S"
-                    )
-                )
-
-                st.session_state["scan_latency"] = elapsed_time
-
-                st.success(
-                    "Security scan completed successfully."
+                    f"Scanner error: {error}"
                 )
 
 
-scan_data = st.session_state.get("scan_result")
+# ============================================================
+# DISPLAY RESULTS
+# ============================================================
+
+scan_data = st.session_state.scan_result
 
 
 if scan_data:
-    st.write("")
+
     st.divider()
 
-    render_html(
-        """
-        <div class="section-heading">
-            Target Information
-        </div>
-        """
+
+    # ========================================================
+    # TARGET INFORMATION
+    # ========================================================
+
+    st.markdown(
+        '<div class="section-heading">Target Information</div>',
+        unsafe_allow_html=True
     )
 
-    target_col1, target_col2, target_col3 = st.columns([4, 1, 2])
+    target_col1, target_col2, target_col3 = st.columns(
+        [4, 1, 2]
+    )
 
     with target_col1:
-        render_html(
-            f"""
-            <div class="target-card">
-                <div class="target-label">
-                    Target URL
-                </div>
 
-                <div class="target-value">
-                    {scan_data.get("target", "N/A")}
-                </div>
-            </div>
-            """
+        st.metric(
+            "Target URL",
+            scan_data.get("target", "N/A")
         )
 
     with target_col2:
-        render_html(
-            f"""
-            <div class="target-card">
-                <div class="target-label">
-                    Method
-                </div>
 
-                <div class="target-value">
-                    {scan_data.get("method", "GET")}
-                </div>
-            </div>
-            """
+        st.metric(
+            "Method",
+            scan_data.get("method", "N/A")
         )
 
     with target_col3:
-        render_html(
-            f"""
-            <div class="target-card">
-                <div class="target-label">
-                    Scan Time
-                </div>
 
-                <div class="target-value">
-                    {st.session_state.get(
-                        "scan_timestamp",
-                        "N/A"
-                    )}
-                </div>
-            </div>
-            """
+        st.metric(
+            "Scan Time",
+            st.session_state.scan_timestamp or "N/A"
         )
 
-    st.write("")
 
-    render_html(
-        """
-        <div class="section-heading">
-            Scan Summary
-        </div>
-        """
-    )
+    # ========================================================
+    # GET DATA
+    # ========================================================
 
     status_code = scan_data.get(
         "status_code",
@@ -665,65 +552,42 @@ if scan_data:
         []
     )
 
-    if isinstance(response, str):
-        response_size = len(
-            response.encode("utf-8")
-        )
 
-    elif isinstance(response, (dict, list)):
-        response_size = len(
-            json.dumps(response).encode("utf-8")
-        )
+    # ========================================================
+    # RESPONSE SIZE
+    # ========================================================
 
-    elif response is not None:
-        response_size = len(
-            str(response).encode("utf-8")
-        )
-
-    else:
-        response_size = 0
+    response_size = len(
+        str(response).encode("utf-8")
+    )
 
     if response_size >= 1024:
+
         response_size_display = (
             f"{response_size / 1024:.2f} KB"
         )
+
     else:
+
         response_size_display = (
             f"{response_size} B"
         )
 
-    status_class = "status-2xx"
-    status_badge = "badge-success"
-    status_text = "SUCCESS"
 
-    if isinstance(status_code, int):
+    # ========================================================
+    # SCAN SUMMARY
+    # ========================================================
 
-        if 200 <= status_code < 300:
-            status_class = "status-2xx"
-            status_badge = "badge-success"
-            status_text = "SUCCESS"
-
-        elif 300 <= status_code < 400:
-            status_class = "status-3xx"
-            status_badge = "badge-info"
-            status_text = "REDIRECT"
-
-        elif 400 <= status_code < 500:
-            status_class = "status-4xx"
-            status_badge = "badge-warning"
-            status_text = "CLIENT ERROR"
-
-        elif 500 <= status_code < 600:
-            status_class = "status-5xx"
-            status_badge = "badge-danger"
-            status_text = "SERVER ERROR"
-
-        else:
-            status_text = "HTTP"
-
-    latency = st.session_state.get(
-        "scan_latency"
+    st.markdown(
+        '<div class="section-heading">Scan Summary</div>',
+        unsafe_allow_html=True
     )
+
+    summary_col1, summary_col2, summary_col3, summary_col4 = (
+        st.columns(4)
+    )
+
+    latency = st.session_state.scan_latency
 
     latency_display = (
         f"{latency:.2f} ms"
@@ -731,275 +595,459 @@ if scan_data:
         else "N/A"
     )
 
-    col1, col2, col3, col4 = st.columns(4)
+    with summary_col1:
 
-    with col1:
-        render_html(
-            f"""
-            <div class="metric-card">
-                <div class="metric-title">
-                    HTTP Status
-                </div>
-
-                <div class="metric-value {status_class}">
-                    {status_code}
-
-                    <span class="badge {status_badge}">
-                        {status_text}
-                    </span>
-                </div>
-
-                <div class="metric-subtitle">
-                    HTTP response code
-                </div>
-            </div>
-            """
+        st.metric(
+            "HTTP Status",
+            status_code,
+            get_status_text(status_code)
         )
 
-    with col2:
-        render_html(
-            f"""
-            <div class="metric-card">
-                <div class="metric-title">
-                    Response Latency
-                </div>
+    with summary_col2:
 
-                <div class="metric-value">
-                    {latency_display}
-                </div>
-
-                <div class="metric-subtitle">
-                    Scanner execution time
-                </div>
-            </div>
-            """
+        st.metric(
+            "Response Latency",
+            latency_display
         )
 
-    with col3:
-        render_html(
-            f"""
-            <div class="metric-card">
-                <div class="metric-title">
-                    Response Size
-                </div>
+    with summary_col3:
 
-                <div class="metric-value">
-                    {response_size_display}
-                </div>
-
-                <div class="metric-subtitle">
-                    {response_size:,} bytes
-                </div>
-            </div>
-            """
+        st.metric(
+            "Response Size",
+            response_size_display
         )
 
-    with col4:
-        finding_count = len(findings)
+    with summary_col4:
 
-        if finding_count > 0:
-            finding_color = "#f87171"
-            finding_status = "FINDINGS"
-        else:
-            finding_color = "#34d399"
-            finding_status = "CLEAN"
-
-        render_html(
-            f"""
-            <div class="metric-card">
-                <div class="metric-title">
-                    Security Findings
-                </div>
-
-                <div class="metric-value"
-                     style="color:{finding_color};">
-
-                    {finding_count}
-
-                    <span class="badge badge-info">
-                        {finding_status}
-                    </span>
-                </div>
-
-                <div class="metric-subtitle">
-                    Scanner findings
-                </div>
-            </div>
-            """
+        st.metric(
+            "Security Findings",
+            len(findings)
         )
 
-    st.write("")
 
-    render_html(
-        """
-        <div class="section-heading">
-            Security Findings
-        </div>
-        """
-    )
+    # ========================================================
+    # NORMALIZE FINDINGS
+    # ========================================================
 
-    if not findings:
-        render_html(
-            """
-            <div class="empty-state">
-                <div class="empty-title">
-                    No security findings available
-                </div>
+    normalized_findings = []
 
-                <div class="empty-text">
-                    Findings will appear here when the
-                    scanning modules provide results.
-                </div>
-            </div>
-            """
-        )
+    for finding in findings:
 
-    else:
-        severity_map = {
-            "high": "severity-high",
-            "medium": "severity-medium",
-            "low": "severity-low",
-            "info": "severity-info"
-        }
-
-        for finding in findings:
-
-            finding_name = finding.get(
-                "name",
-                "Security Finding"
-            )
+        if isinstance(finding, dict):
 
             severity = str(
                 finding.get(
                     "severity",
-                    "Info"
+                    "INFO"
                 )
-            ).strip()
+            ).upper().strip()
 
-            severity_class = severity_map.get(
-                severity.lower(),
-                "severity-info"
+            endpoint = finding.get(
+                "endpoint",
+                scan_data.get(
+                    "target",
+                    "Unknown"
+                )
             )
 
-            details = finding.get(
-                "details",
-                "No additional details available."
+            description = finding.get(
+                "description",
+                "No description available."
             )
 
-            render_html(
-                f"""
-                <div class="finding-card">
-                    <div>
-                        <span class="severity {severity_class}">
-                            {severity}
-                        </span>
+            title = get_finding_title(finding)
 
-                        <span class="finding-title">
-                            {finding_name}
-                        </span>
-                    </div>
+        else:
 
-                    <div class="finding-details">
-                        {details}
-                    </div>
-                </div>
-                """
+            severity = "INFO"
+
+            endpoint = scan_data.get(
+                "target",
+                "Unknown"
             )
 
-    render_html(
-        """
-        <div class="section-heading">
-            HTTP Response Inspector
-        </div>
-        """
+            description = str(finding)
+
+            title = "Security Finding"
+
+        if severity not in [
+            "HIGH",
+            "MEDIUM",
+            "LOW",
+            "INFO"
+        ]:
+
+            severity = "INFO"
+
+        normalized_findings.append(
+            {
+                "severity": severity,
+                "title": title,
+                "endpoint": endpoint,
+                "description": description
+            }
+        )
+
+
+    # ========================================================
+    # RISK SUMMARY
+    # ========================================================
+
+    high_count = sum(
+        1
+        for item in normalized_findings
+        if item["severity"] == "HIGH"
     )
 
-    tab_headers, tab_body = st.tabs(
+    medium_count = sum(
+        1
+        for item in normalized_findings
+        if item["severity"] == "MEDIUM"
+    )
+
+    low_count = sum(
+        1
+        for item in normalized_findings
+        if item["severity"] == "LOW"
+    )
+
+    info_count = sum(
+        1
+        for item in normalized_findings
+        if item["severity"] == "INFO"
+    )
+
+    risk_score = (
+        high_count * 10
+        + medium_count * 5
+        + low_count * 2
+    )
+
+    risk_level = calculate_risk_level(
+        risk_score
+    )
+
+    # ========================================================
+    # MODULE EXECUTION STATUS
+    # ========================================================
+
+    st.markdown(
+        '<div class="section-heading">Module Execution Status</div>',
+        unsafe_allow_html=True
+    )
+
+    module_status = scan_data.get(
+        "module_status",
+        []
+    )
+
+    if module_status:
+
+        if isinstance(module_status, dict):
+            module_status = [
+                {
+                    "name": name,
+                    "status": status
+                }
+                for name, status in module_status.items()
+            ]
+
+        for module in module_status:
+
+            if not isinstance(module, dict):
+                st.info(str(module))
+                continue
+
+            name = module.get(
+                "name",
+                "Unknown Module"
+            )
+
+            status = str(
+                module.get(
+                    "status",
+                    "UNKNOWN"
+                )
+            ).upper()
+
+            findings_count = module.get(
+                "findings",
+                0
+            )
+
+            execution_time = module.get(
+                "execution_time_ms",
+                0
+            )
+
+            error = module.get("error")
+
+            if status == "COMPLETED":
+
+                st.success(
+                    f"{name} — Completed | "
+                    f"Findings: {findings_count} | "
+                    f"Time: {execution_time} ms"
+                )
+
+            elif status == "FAILED":
+
+                st.error(
+                    f"{name} — Failed | "
+                    f"Error: {error or 'Unknown error'}"
+                )
+
+            else:
+
+                st.info(
+                    f"{name} — {status}"
+                )
+
+    else:
+
+        st.info(
+            "No module execution information available."
+        )
+
+
+
+    # ========================================================
+    # SECURITY FINDINGS
+    # ========================================================
+
+    st.markdown(
+        '<div class="section-heading">Security Findings</div>',
+        unsafe_allow_html=True
+    )
+
+    risk_col1, risk_col2, risk_col3, risk_col4, risk_col5 = (
+        st.columns(5)
+    )
+
+    with risk_col1:
+        st.metric("High", high_count)
+
+    with risk_col2:
+        st.metric("Medium", medium_count)
+
+    with risk_col3:
+        st.metric("Low", low_count)
+
+    with risk_col4:
+        st.metric("Informational", info_count)
+
+    with risk_col5:
+        st.metric("Risk Score", risk_score)
+
+    st.caption(
+        f"Overall Risk Assessment: {risk_level}"
+    )
+
+
+
+    # ========================================================
+    # SEVERITY FILTER
+    # ========================================================
+
+    severity_filter = st.selectbox(
+        "Filter Findings",
         [
-            "Headers",
+            "All",
+            "HIGH",
+            "MEDIUM",
+            "LOW",
+            "INFO"
+        ]
+    )
+
+    if severity_filter == "All":
+
+        filtered_findings = (
+            normalized_findings.copy()
+        )
+
+    else:
+
+        filtered_findings = [
+            finding
+            for finding in normalized_findings
+            if finding["severity"] == severity_filter
+        ]
+
+
+
+    # ========================================================
+    # SORT FINDINGS
+    # ========================================================
+
+    severity_order = {
+        "HIGH": 1,
+        "MEDIUM": 2,
+        "LOW": 3,
+        "INFO": 4
+    }
+
+    filtered_findings.sort(
+        key=lambda item: severity_order.get(
+            item["severity"],
+            5
+        )
+    )
+
+
+
+    # ========================================================
+    # DISPLAY FINDINGS
+    # ========================================================
+
+    if not filtered_findings:
+
+        st.info(
+            "No security findings match the selected filter."
+        )
+
+    else:
+
+        for index, finding in enumerate(
+            filtered_findings,
+            start=1
+        ):
+
+            severity = finding["severity"]
+            title = finding["title"]
+            endpoint = finding["endpoint"]
+            description = finding["description"]
+
+            with st.container(border=True):
+
+                col_badge, col_title = st.columns(
+                    [1, 6]
+                )
+
+                with col_badge:
+
+                    if severity == "HIGH":
+
+                        st.error("HIGH")
+
+                    elif severity == "MEDIUM":
+
+                        st.warning("MEDIUM")
+
+                    elif severity == "LOW":
+
+                        st.success("LOW")
+
+                    else:
+
+                        st.info("INFO")
+
+                with col_title:
+
+                    st.subheader(title)
+
+                st.caption(
+                    f"Endpoint: {endpoint}"
+                )
+
+                st.write(description)
+                
+    # ========================================================
+    # HTTP RESPONSE INSPECTOR
+    # ========================================================
+
+    st.markdown(
+        '<div class="section-heading">HTTP Response Inspector</div>',
+        unsafe_allow_html=True
+    )
+
+    headers_tab, body_tab = st.tabs(
+        [
+            "Response Headers",
             "Response Body"
         ]
     )
 
-    with tab_headers:
+    with headers_tab:
 
-        if headers and isinstance(headers, dict):
+        if headers:
+
             st.json(headers)
 
-        elif headers:
-            st.code(
-                str(headers),
-                language="text"
+        else:
+
+            st.info(
+                "No response headers available."
+            )
+
+    with body_tab:
+
+        if not response:
+
+            st.info(
+                "No response body received."
             )
 
         else:
-            st.info(
-                "No response headers were returned."
-            )
-
-    with tab_body:
-
-        if isinstance(response, dict):
-            st.json(response)
-
-        elif isinstance(response, list):
-            st.json(response)
-
-        elif isinstance(response, str):
 
             try:
-                parsed_response = json.loads(response)
 
-                st.json(parsed_response)
+                parsed_response = json.loads(
+                    response
+                )
+
+                st.json(
+                    parsed_response
+                )
 
             except (
                 json.JSONDecodeError,
                 TypeError
             ):
-                st.code(
-                    response
-                    if response
-                    else "(Empty Response Body)",
-                    language="text"
+
+                st.text_area(
+                    "Response Content",
+                    value=str(response),
+                    height=300,
+                    disabled=True
                 )
 
-        elif response is not None:
-            st.code(
-                str(response),
-                language="text"
-            )
 
-        else:
-            st.info(
-                "No response body received."
-            )
+    # ========================================================
+    # DOWNLOAD REPORT
+    # ========================================================
 
-    render_html(
-        """
-        <div class="section-heading">
-            Assessment Report
-        </div>
-        """
+    st.markdown(
+        '<div class="section-heading">Assessment Report</div>',
+        unsafe_allow_html=True
     )
 
     report = {
         "target": scan_data.get("target"),
         "method": scan_data.get("method"),
         "status_code": scan_data.get("status_code"),
-        "headers": scan_data.get("headers"),
-        "response": scan_data.get("response"),
-        "findings": scan_data.get("findings", []),
-        "scan_timestamp": st.session_state.get(
-            "scan_timestamp"
+        "headers": headers,
+        "response": response,
+        "findings": normalized_findings,
+        "risk_summary": {
+            "high": high_count,
+            "medium": medium_count,
+            "low": low_count,
+            "info": info_count,
+            "risk_score": risk_score,
+            "risk_level": risk_level
+        },
+        "scan_timestamp": (
+            st.session_state.scan_timestamp
         ),
-        "scan_latency_ms": st.session_state.get(
-            "scan_latency"
+        "scan_latency_ms": (
+            st.session_state.scan_latency
         )
     }
 
     report_json = json.dumps(
         report,
-        indent=2,
+        indent=4,
         default=str
     )
 
@@ -1008,10 +1056,10 @@ if scan_data:
     )
 
     st.download_button(
-        label="Download JSON Report",
+        label="Download Assessment Report",
         data=report_json,
         file_name=(
-            f"apisweeper_scan_report_"
+            f"apisweeper_report_"
             f"{filename_timestamp}.json"
         ),
         mime="application/json",
