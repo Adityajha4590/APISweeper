@@ -8,6 +8,8 @@ import requests
 from modules.passive.security_headers import SecurityHeadersScanner
 from modules.passive.verbose_errors import VerboseErrorsScanner
 from modules.active.jwt_checks import JWTScanner
+from modules.active.rate_limiting import RateLimitScanner
+from modules.logic.bola_idor import BOLAChecker
 
 
 # ============================================================
@@ -65,7 +67,7 @@ def normalize_finding(finding, default_endpoint):
             finding.get("severity", "INFO")
         ).upper()
 
-        if severity not in ["HIGH", "MEDIUM", "LOW", "INFO"]:
+        if severity not in ["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFO"]:
             severity = "INFO"
 
         return {
@@ -96,7 +98,11 @@ def get_available_modules(
     token,
     enable_headers=True,
     enable_verbose_errors=True,
-    enable_jwt=True
+    enable_jwt=True,
+    enable_rate_limit=False,
+    enable_bola=False,
+    token_b=None,
+    endpoints_with_ids=None,
 ):
     """
     Prepare all enabled scanning modules.
@@ -124,6 +130,23 @@ def get_available_modules(
             "scanner": JWTScanner(url, token)
         })
 
+    if enable_rate_limit:
+        modules.append({
+        "name": "Rate Limiting",
+        "scanner": RateLimitScanner(url, token)
+    })
+
+    if enable_bola and token and token_b and endpoints_with_ids:
+        modules.append({
+        "name": "BOLA / IDOR",
+        "scanner": BOLAChecker(
+            target_url=url,
+            token=token,
+            token_b=token_b,
+            endpoints_with_ids=endpoints_with_ids,
+        )
+    })
+
     return modules
 
 
@@ -136,7 +159,12 @@ def run_security_modules(
     token=None,
     enable_headers=True,
     enable_verbose_errors=True,
-    enable_jwt=True
+    enable_jwt=True,
+    enable_rate_limit=False,
+    enable_bola=False,
+    token_b=None,
+    endpoints_with_ids=None,
+
 ):
     """
     Run all selected security modules safely.
@@ -150,12 +178,16 @@ def run_security_modules(
     module_status = []
 
     modules = get_available_modules(
-        url=url,
-        token=token,
-        enable_headers=enable_headers,
-        enable_verbose_errors=enable_verbose_errors,
-        enable_jwt=enable_jwt
-    )
+    url=url,
+    token=token,
+    enable_headers=enable_headers,
+    enable_verbose_errors=enable_verbose_errors,
+    enable_jwt=enable_jwt,
+    enable_rate_limit=enable_rate_limit,
+    enable_bola=enable_bola,
+    token_b=token_b,
+    endpoints_with_ids=endpoints_with_ids,
+)
 
     for module in modules:
 
@@ -254,12 +286,14 @@ def calculate_risk_summary(findings):
 
 def calculate_risk_score(risk_summary):
 
+    critical = risk_summary.get("CRITICAL", 0)
     high = risk_summary.get("HIGH", 0)
     medium = risk_summary.get("MEDIUM", 0)
     low = risk_summary.get("LOW", 0)
 
     score = (
-        high * 10
+        critical * 15
+        + high * 10
         + medium * 5
         + low * 2
     )
@@ -349,7 +383,11 @@ def run_scan(
     data=None,
     enable_headers=True,
     enable_verbose_errors=True,
-    enable_jwt=True
+    enable_jwt=True,
+    enable_rate_limit=False,
+    enable_bola=False,
+    token_b=None,
+    endpoints_with_ids=None,
 ):
     """
     Main APISweeper scan function.
@@ -379,12 +417,16 @@ def run_scan(
         response = request_result
 
     findings, module_status = run_security_modules(
-        url=url,
-        token=token,
-        enable_headers=enable_headers,
-        enable_verbose_errors=enable_verbose_errors,
-        enable_jwt=enable_jwt
-    )
+    url=url,
+    token=token,
+    enable_headers=enable_headers,
+    enable_verbose_errors=enable_verbose_errors,
+    enable_jwt=enable_jwt,
+    enable_rate_limit=enable_rate_limit,
+    enable_bola=enable_bola,
+    token_b=token_b,
+    endpoints_with_ids=endpoints_with_ids,
+)
 
     total_duration = (
         time.perf_counter() - total_start_time
