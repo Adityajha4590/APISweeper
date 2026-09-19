@@ -10,6 +10,7 @@ from modules.passive.verbose_errors import VerboseErrorsScanner
 from modules.active.jwt_checks import JWTScanner
 from modules.active.rate_limiting import RateLimitScanner
 from modules.logic.bola_idor import BOLAChecker
+from core.reporting import ReportGenerator
 
 
 # ============================================================
@@ -56,7 +57,7 @@ def scan_target(url, token=None, method="GET", data=None):
 # NORMALIZE FINDING
 # ============================================================
 
-def normalize_finding(finding, default_endpoint):
+def normalize_finding(finding, default_endpoint, source):
     """
     Convert findings from different modules into one standard format.
     """
@@ -79,13 +80,15 @@ def normalize_finding(finding, default_endpoint):
             "description": finding.get(
                 "description",
                 "No description available."
-            )
+            ),
+            "source": finding.get("source", source),
         }
 
     return {
         "severity": "INFO",
         "endpoint": default_endpoint,
-        "description": str(finding)
+        "description": str(finding),
+        "source": source,
     }
 
 
@@ -100,6 +103,8 @@ def get_available_modules(
     enable_verbose_errors=True,
     enable_jwt=True,
     enable_rate_limit=False,
+    rate_limit_method="GET",
+    rate_limit_data=None,
     enable_bola=False,
     token_b=None,
     endpoints_with_ids=None,
@@ -132,9 +137,14 @@ def get_available_modules(
 
     if enable_rate_limit:
         modules.append({
-        "name": "Rate Limiting",
-        "scanner": RateLimitScanner(url, token)
-    })
+            "name": "Rate Limiting",
+            "scanner": RateLimitScanner(
+                url,
+                token,
+                method=rate_limit_method,
+                data=rate_limit_data,
+            ),
+        })
 
     if enable_bola and token and token_b and endpoints_with_ids:
         modules.append({
@@ -161,6 +171,8 @@ def run_security_modules(
     enable_verbose_errors=True,
     enable_jwt=True,
     enable_rate_limit=False,
+    rate_limit_method="GET",
+    rate_limit_data=None,
     enable_bola=False,
     token_b=None,
     endpoints_with_ids=None,
@@ -184,6 +196,8 @@ def run_security_modules(
     enable_verbose_errors=enable_verbose_errors,
     enable_jwt=enable_jwt,
     enable_rate_limit=enable_rate_limit,
+    rate_limit_method=rate_limit_method,
+    rate_limit_data=rate_limit_data,
     enable_bola=enable_bola,
     token_b=token_b,
     endpoints_with_ids=endpoints_with_ids,
@@ -214,7 +228,8 @@ def run_security_modules(
 
                     normalized = normalize_finding(
                         finding,
-                        url
+                        url,
+                        module_name,
                     )
 
                     normalized_results.append(normalized)
@@ -259,6 +274,7 @@ def run_security_modules(
 def calculate_risk_summary(findings):
 
     summary = {
+        "CRITICAL": 0,
         "HIGH": 0,
         "MEDIUM": 0,
         "LOW": 0,
@@ -423,6 +439,8 @@ def run_scan(
     enable_verbose_errors=enable_verbose_errors,
     enable_jwt=enable_jwt,
     enable_rate_limit=enable_rate_limit,
+    rate_limit_method=method,
+    rate_limit_data=data,
     enable_bola=enable_bola,
     token_b=token_b,
     endpoints_with_ids=endpoints_with_ids,
@@ -473,6 +491,17 @@ def save_report(scan_result, output_file):
         print(f"Could not save report: {error}")
 
 
+def save_html_report(scan_result, output_file):
+    """Render the aggregated findings as a standalone HTML report."""
+    try:
+        ReportGenerator(scan_result["target"]).to_html(
+            scan_result["findings"], output_file
+        )
+        print(f"HTML report saved: {output_file}")
+    except OSError as error:
+        print(f"Could not save HTML report: {error}")
+
+
 # ============================================================
 # CLI
 # ============================================================
@@ -511,6 +540,38 @@ def main():
         help="Save results to JSON file"
     )
 
+    parser.add_argument(
+        "--html-output",
+        help="Save findings as a standalone HTML report"
+    )
+
+    parser.add_argument(
+        "--enable-rate-limit",
+        action="store_true",
+        help="Run the active rate-limiting check"
+    )
+
+    parser.add_argument(
+        "--enable-bola",
+        action="store_true",
+        help="Run the BOLA/IDOR check"
+    )
+
+    parser.add_argument(
+        "--token-b",
+        help="Second user's token required for the BOLA/IDOR check"
+    )
+
+    parser.add_argument(
+        "--bola-path",
+        help="ID-based path template, for example /api/v1/orders/{id}"
+    )
+
+    parser.add_argument(
+        "--bola-known-id",
+        help="Object ID known to belong to the first user"
+    )
+
     args = parser.parse_args()
 
     data = None
@@ -524,11 +585,26 @@ def main():
             print("Invalid JSON data.")
             return
 
+    endpoints_with_ids = None
+    if args.enable_bola:
+        if not (args.token and args.token_b and args.bola_path and args.bola_known_id):
+            parser.error(
+                "--enable-bola requires --token, --token-b, --bola-path, and --bola-known-id"
+            )
+        endpoints_with_ids = [{
+            "path_template": args.bola_path,
+            "known_id_user_a": args.bola_known_id,
+        }]
+
     result = run_scan(
         url=args.url,
         token=args.token,
         method=args.method,
-        data=data
+        data=data,
+        enable_rate_limit=args.enable_rate_limit,
+        enable_bola=args.enable_bola,
+        token_b=args.token_b,
+        endpoints_with_ids=endpoints_with_ids,
     )
 
     if not result.get("success"):
@@ -578,6 +654,9 @@ def main():
             result,
             args.output
         )
+
+    if args.html_output:
+        save_html_report(result, args.html_output)
 
 
 if __name__ == "__main__":
