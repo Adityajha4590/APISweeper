@@ -3,6 +3,7 @@ import time
 from datetime import datetime
 
 import streamlit as st
+st.set_option("client.toolbarMode", "minimal")
 
 from scanner import run_scan
 
@@ -649,6 +650,7 @@ st.markdown(
         font-size: 22px;
         font-weight: 800;
         letter-spacing: -0.4px;
+        margin-top : -20px;
     }
 
     .sidebar-subtitle {
@@ -817,9 +819,9 @@ with st.sidebar:
     st.divider()
     st.subheader("Scanner Configuration")
 
-    enable_headers = st.checkbox("Security Headers", value=True)
-    enable_verbose_errors = st.checkbox("Verbose Error Detection", value=True)
-    enable_jwt = st.checkbox("JWT Token Verification", value=True)
+    enable_headers = st.checkbox("Security Headers", value=False)
+    enable_verbose_errors = st.checkbox("Verbose Error Detection", value=False)
+    enable_jwt = st.checkbox("JWT Token Verification", value=False)
     enable_rate_limit = st.checkbox("Rate Limiting", value=False)
     enable_bola = st.checkbox("BOLA / IDOR", value=False)
 
@@ -886,30 +888,35 @@ with st.sidebar:
 # APPLICATION HEADER
 # ============================================================
 
-st.markdown(
-    """
-    <div class="hero">
-        <div class="brand-row">
-            <div class="brand-mark">A</div>
-            <div>
-                <div class="hero-title">APISweeper</div>
-                <div class="hero-subtitle">REST API Security Assessment Platform</div>
+# ============================================================
+# APPLICATION HEADER
+# ============================================================
+
+if st.session_state.scan_result is None:
+    st.markdown(
+        """
+        <div class="hero">
+            <div class="brand-row">
+                <div class="brand-mark">A</div>
+                <div>
+                    <div class="hero-title">APISweeper</div>
+                    <div class="hero-subtitle">REST API Security Assessment Platform</div>
+                </div>
+            </div>
+            <div style="margin-top:16px;">
+                <span class="ready-pill">
+                    <span class="ready-dot"></span>
+                    Scanner Engine Ready
+                </span>
+            </div>
+            <div class="hero-description">
+                Discover API security weaknesses, analyze risk, and inspect responses
+                through a unified security assessment dashboard.
             </div>
         </div>
-        <div style="margin-top:16px;">
-            <span class="ready-pill">
-                <span class="ready-dot"></span>
-                Scanner Engine Ready
-            </span>
-        </div>
-        <div class="hero-description">
-            Discover API security weaknesses, analyze risk, and inspect responses
-            through a unified security assessment dashboard.
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 # ============================================================
@@ -1220,10 +1227,25 @@ if scan_data:
     # RESULT HEADER
     # ========================================================
 
-    st.markdown(
-        '<div class="section-heading">Security Assessment</div>',
-        unsafe_allow_html=True,
-    )
+    result_title_col, result_button_col = st.columns([7, 1])
+
+    with result_title_col:
+        st.markdown(
+            '<div class="section-heading">Security Assessment</div>',
+            unsafe_allow_html=True,
+        )
+
+    with result_button_col:
+        if st.button(
+            "↩ Dashboard",
+            key="return_to_dashboard",
+            use_container_width=True,
+        ):
+            st.session_state.scan_result = None
+            st.session_state.scan_timestamp = None
+            st.session_state.scan_latency = None
+            st.session_state.selected_finding_category = None
+            st.rerun()
 
     header_target, header_findings, header_latency, header_risk = st.columns(
         [3.4, 1, 1, 1.15]
@@ -1769,4 +1791,3 @@ if scan_data:
                 hide_index=True,
                 use_container_width=True,
             )
-
