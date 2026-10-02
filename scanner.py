@@ -139,10 +139,8 @@ def get_available_modules(
         modules.append({
             "name": "Rate Limiting",
             "scanner": RateLimitScanner(
-                url,
-                token,
-                method=rate_limit_method,
-                data=rate_limit_data,
+                target_url=url,
+                token=token,
             ),
         })
 
