@@ -130,9 +130,36 @@ Total Vulnerabilities Found: 3
 
 ---
 
+## 🚀 Future Scope
+
+Potential improvements for future versions of APISweeper include:
+
+-Expanded OWASP API Coverage: Add more checks for broken authentication, object property authorization, resource consumption, SSRF, and other API security risks.
+-OpenAPI/Swagger Integration: Import API specifications to discover endpoints, methods, parameters, and authentication requirements.
+-Improved BOLA Detection: Automate more authorization comparisons across users and object identifiers.
+-Advanced Authentication Testing: Expand checks for token validation, authentication bypass, and session-management weaknesses.
+-Improved Reporting: Provide richer evidence, remediation guidance, and additional report formats.
+-CI/CD Integration: Run authorized security checks during automated build and deployment workflows.
+-Testing Improvements: Add more repeatable automated tests for scanner behaviour, error handling, and vulnerability detection.
+
+These are potential enhancements, not claims that the features are already implemented.
+
+---
+
 ## 🏆 Supervisor Resume Highlights (Aditya Kumar Jha)
 If you are adding this project to your resume, consider using these bullet points:
 *   **Technical Leadership:** Supervised and architected a 5-person engineering team to build **APISweeper**, a modular Dynamic Application Security Testing (DAST) tool over a 20-day agile sprint.
 *   **System Architecture:** Designed the extensible core engine in Python, establishing standard inheritance patterns (`BaseScanner`) enabling concurrent development of passive, active, and logic-based vulnerability modules.
 *   **Full-Stack Development:** Engineered both a vulnerable Flask-based dummy target API for zero-risk local testing, and supervised the integration of a premium Streamlit Web UI dashboard to visualize scanner findings in real-time.
 *   **Project Management:** Enforced strict Git Flow (feature branching, PR reviews) and defined the project roadmap, ensuring seamless integration of complex modules (BOLA checks, Rate Limiting, JWT validation).
+
+---
+
+## 📚 References
+-APISweeper Repository
+-OWASP API Security Top 10
+-OWASP Web Security Testing Guide
+-Python Requests Documentation
+-Flask Documentation
+-Streamlit Documentation
+-JSON Web Token Specification — RFC 7519
