@@ -26,28 +26,24 @@ This project was developed over a 20-day sprint by a 5-person security engineeri
 This project was strictly managed and developed across 4 agile phases:
 
 ### Phase 1: Foundation & Setup (Days 1 - 4)
-*   **Repository Initialization:** Set up Git flow, branch protections, and contribution guidelines.
-*   **Dummy Target API:** Developed a deliberately vulnerable local API (using Flask) to safely test our scanner payloads.
-*   **Architecture Design:** Defined the base Python classes (`core/base.py`) so all vulnerability modules plug into the main engine uniformly.
-*   **Web UI Scaffold:** Designed a premium, dark-mode cybersecurity dashboard (`ui.py`) using **Streamlit** (100% Python frontend).
-
+* **Repository Initialization:** Set up Git flow, branch protections, and contribution guidelines.
+* **Dummy Target API:** Developed a deliberately vulnerable local API (using Flask) to safely test our scanner payloads.
+* **Architecture Design:** Defined the base Python classes (core/base.py) so all vulnerability modules plug into the main engine uniformly.
+* **Web UI Scaffold:** Designed a premium, dark-mode cybersecurity dashboard (ui.py) using Streamlit (100% Python frontend).
 ### Phase 2: Core Framework & Basic Modules (Days 5 - 10)
-*   **CLI Engine & UI Backend:** Implemented `argparse` for robust command-line target ingestion (`scanner.py`) and integrated it into the Streamlit dashboard (`ui.py`).
-*   **Missing Security Headers Module:** Automatically flags missing standard defenses (e.g., `Strict-Transport-Security`, `X-Content-Type-Options`).
-*   **Verbose Error Leaks Module:** Uses pattern matching to detect stack traces (Python, Java, SQL syntax) improperly returned in HTTP 500 responses.
-
+* **CLI Engine & UI Backend:** Implemented argparse for robust command-line target ingestion (scanner.py) and integrated it into the Streamlit dashboard (ui.py).
+* **Missing Security Headers Module:** Automatically flags missing standard defenses (e.g., Strict-Transport-Security, X-Content-Type-Options).
+* **Verbose Error Leaks Module:** Uses pattern matching to detect stack traces (Python, Java, SQL syntax) improperly returned in HTTP 500 responses.
 ### Phase 3: Complex Vulnerability Modules (Days 11 - 16)
-*   **Rate Limiting Check:** Blasts a target endpoint with high-frequency rapid requests to verify the presence of `429 Too Many Requests` controls.
-*   **BOLA / IDOR Check:** Tests Broken Object Level Authorization by attempting cross-user data access via ID manipulation (e.g., swapping `?user_id=1` to `?user_id=2`).
-*   **JWT Security Check:** Inspects Authorization tokens for missing signatures or acceptance of the `alg: none` vulnerability.
-*   **Reporting Engine:** Aggregates findings and assigns CVSS-based severity scores (Low, Medium, High, Critical).
-
+* **Rate Limiting Check:** Blasts a target endpoint with high-frequency rapid requests to verify the presence of 429 Too Many Requests controls.
+* **BOLA / IDOR Check:** Tests Broken Object Level Authorization by attempting cross-user data access via ID manipulation (e.g., swapping ?user_id=1 to ?user_id=2).
+* **JWT Security Check:** Inspects Authorization tokens for missing signatures or acceptance of the alg: none vulnerability.
+* **Reporting Engine:** Aggregates findings and assigns CVSS-based severity scores (Low, Medium, High, Critical).
 ### Phase 4: Testing, Refinement & Documentation (Days 17 - 20)
-*   **Integration Testing:** Running the full APISweeper suite against the Dummy Target API to eliminate false positives and negatives.
-*   **Code Review:** Final pull request merges and code quality standardization.
-*   **Documentation:** Finalizing this README and usage instructions.
+* **Integration Testing:** Running the full APISweeper suite against the Dummy Target API to eliminate false positives and negatives.
+* **Code Review:** Final pull request merges and code quality standardization.
+Documentation: Finalizing this README and usage instructions.
 
----
 
 ## 📁 Project Structure
 The repository is structured as follows:
@@ -158,10 +154,19 @@ Total Vulnerabilities Found: 3
 
 ---
 
-## 🤝 Contribution Guidelines (Internal Team)
-1. **Branch Naming:** Format your branches as `feature/module-name` (e.g., `feature/rate-limiting`).
-2. **Pull Requests:** Do not merge your own PRs. Assign the Supervisor for review.
-3. **Module Structure:** Ensure all new checks inherit from the `BaseScanner` class found in `core/base.py`.
+## 🚀 Future Scope
+
+Potential improvements for future versions of APISweeper include:
+
+* **Expanded OWASP API Coverage:** Add more checks for broken authentication, object property authorization, resource consumption, SSRF, and other API security risks.
+* **OpenAPI/Swagger Integration:** Import API specifications to discover endpoints, methods, parameters, and authentication requirements.
+* **Improved BOLA Detection:** Automate more authorization comparisons across users and object identifiers.
+* **Advanced Authentication Testing:** Expand checks for token validation, authentication bypass, and session-management weaknesses.
+* **Improved Reporting:** Provide richer evidence, remediation guidance, and additional report formats.
+* **CI/CD Integration:** Run authorized security checks during automated build and deployment workflows.
+* **Testing Improvements:** Add more repeatable automated tests for scanner behaviour, error handling, and vulnerability detection.
+
+These are potential enhancements, not claims that the features are already implemented.
 
 ---
 
@@ -171,3 +176,14 @@ If you are adding this project to your resume, consider using these bullet point
 *   **System Architecture:** Designed the extensible core engine in Python, establishing standard inheritance patterns (`BaseScanner`) enabling concurrent development of passive, active, and logic-based vulnerability modules.
 *   **Full-Stack Development:** Engineered both a vulnerable Flask-based dummy target API for zero-risk local testing, and supervised the integration of a premium Streamlit Web UI dashboard to visualize scanner findings in real-time.
 *   **Project Management:** Enforced strict Git Flow (feature branching, PR reviews) and defined the project roadmap, ensuring seamless integration of complex modules (BOLA checks, Rate Limiting, JWT validation).
+
+---
+
+## 📚 References
+* APISweeper Repository
+* OWASP API Security Top 10
+* OWASP Web Security Testing Guide
+* Python Requests Documentation
+* Flask Documentation
+* Streamlit Documentation
+* JSON Web Token Specification — RFC 7519
