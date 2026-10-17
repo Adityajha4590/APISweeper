@@ -21,6 +21,30 @@ This project was developed over a 20-day sprint by a 5-person security engineeri
 
 ---
 
+## 🚀 Project Roadmap & Phases
+
+This project was strictly managed and developed across 4 agile phases:
+
+### Phase 1: Foundation & Setup (Days 1 - 4)
+* **Repository Initialization:** Set up Git flow, branch protections, and contribution guidelines.
+* **Dummy Target API:** Developed a deliberately vulnerable local API (using Flask) to safely test our scanner payloads.
+* **Architecture Design:** Defined the base Python classes (core/base.py) so all vulnerability modules plug into the main engine uniformly.
+* **Web UI Scaffold:** Designed a premium, dark-mode cybersecurity dashboard (ui.py) using Streamlit (100% Python frontend).
+### Phase 2: Core Framework & Basic Modules (Days 5 - 10)
+* **CLI Engine & UI Backend:** Implemented argparse for robust command-line target ingestion (scanner.py) and integrated it into the Streamlit dashboard (ui.py).
+* **Missing Security Headers Module:** Automatically flags missing standard defenses (e.g., Strict-Transport-Security, X-Content-Type-Options).
+* **Verbose Error Leaks Module:** Uses pattern matching to detect stack traces (Python, Java, SQL syntax) improperly returned in HTTP 500 responses.
+### Phase 3: Complex Vulnerability Modules (Days 11 - 16)
+* **Rate Limiting Check:** Blasts a target endpoint with high-frequency rapid requests to verify the presence of 429 Too Many Requests controls.
+* **BOLA / IDOR Check:** Tests Broken Object Level Authorization by attempting cross-user data access via ID manipulation (e.g., swapping ?user_id=1 to ?user_id=2).
+* **JWT Security Check:** Inspects Authorization tokens for missing signatures or acceptance of the alg: none vulnerability.
+* **Reporting Engine:** Aggregates findings and assigns CVSS-based severity scores (Low, Medium, High, Critical).
+### Phase 4: Testing, Refinement & Documentation (Days 17 - 20)
+* **Integration Testing:** Running the full APISweeper suite against the Dummy Target API to eliminate false positives and negatives.
+* **Code Review:** Final pull request merges and code quality standardization.
+Documentation: Finalizing this README and usage instructions.
+
+
 ## 📁 Project Structure
 The repository is structured as follows:
 
@@ -134,13 +158,13 @@ Total Vulnerabilities Found: 3
 
 Potential improvements for future versions of APISweeper include:
 
--Expanded OWASP API Coverage: Add more checks for broken authentication, object property authorization, resource consumption, SSRF, and other API security risks.
--OpenAPI/Swagger Integration: Import API specifications to discover endpoints, methods, parameters, and authentication requirements.
--Improved BOLA Detection: Automate more authorization comparisons across users and object identifiers.
--Advanced Authentication Testing: Expand checks for token validation, authentication bypass, and session-management weaknesses.
--Improved Reporting: Provide richer evidence, remediation guidance, and additional report formats.
--CI/CD Integration: Run authorized security checks during automated build and deployment workflows.
--Testing Improvements: Add more repeatable automated tests for scanner behaviour, error handling, and vulnerability detection.
+* **Expanded OWASP API Coverage:** Add more checks for broken authentication, object property authorization, resource consumption, SSRF, and other API security risks.
+* **OpenAPI/Swagger Integration:** Import API specifications to discover endpoints, methods, parameters, and authentication requirements.
+* **Improved BOLA Detection:** Automate more authorization comparisons across users and object identifiers.
+* **Advanced Authentication Testing:** Expand checks for token validation, authentication bypass, and session-management weaknesses.
+* **Improved Reporting:** Provide richer evidence, remediation guidance, and additional report formats.
+* **CI/CD Integration:** Run authorized security checks during automated build and deployment workflows.
+* **Testing Improvements:** Add more repeatable automated tests for scanner behaviour, error handling, and vulnerability detection.
 
 These are potential enhancements, not claims that the features are already implemented.
 
@@ -156,10 +180,10 @@ If you are adding this project to your resume, consider using these bullet point
 ---
 
 ## 📚 References
--APISweeper Repository
--OWASP API Security Top 10
--OWASP Web Security Testing Guide
--Python Requests Documentation
--Flask Documentation
--Streamlit Documentation
--JSON Web Token Specification — RFC 7519
+* APISweeper Repository
+* OWASP API Security Top 10
+* OWASP Web Security Testing Guide
+* Python Requests Documentation
+* Flask Documentation
+* Streamlit Documentation
+* JSON Web Token Specification — RFC 7519
